@@ -1,0 +1,177 @@
+{
+  "_comment": "특허 자동화 시스템 - 발명 내용 입력 템플릿 (이 파일을 복사해서 새 발명 내용으로 교체하세요)",
+
+  "meta": {
+    "applicant_ko": "주식회사 오베네프",
+    "applicant_en": "OBENE Inc.",
+    "inventor": "홍길동",
+    "ipc_codes": ["G06F 3/00", "G06F 9/44", "G06N 5/04"],
+    "filing_date": "2026-06-24",
+    "target_offices": ["KIPO", "USPTO"]
+  },
+
+  "invention": {
+    "title_ko": "분산 크로스플랫폼 환경에서의 AI 기반 통합 워크스페이스 시스템",
+    "title_en": "AI-BASED INTEGRATED WORKSPACE SYSTEM IN DISTRIBUTED CROSS-PLATFORM ENVIRONMENT",
+
+    "technical_field_ko": "본 발명은 [기술분야를 한 문장으로 입력하세요]. 예: 기업용 클라우드 소프트웨어, 인공지능, 웹 플랫폼 등",
+    "technical_field_en": "The present invention relates to [enter technical field in one sentence].",
+
+    "problem_statement": [
+      "기존 기술의 첫 번째 문제점: 예) 단일 소스코드로 여러 플랫폼 지원 불가",
+      "기존 기술의 두 번째 문제점: 예) 창 전환 시 상태 오염 발생",
+      "기존 기술의 세 번째 문제점: 예) AI 추론 연산 오버헤드가 너무 큼"
+    ],
+
+    "prior_art": [
+      {
+        "patent_no": "US10000000B2",
+        "title": "선행특허 1 제목",
+        "assignee": "Microsoft",
+        "differentiation": "선행특허와의 차이점: 본 발명은 [차이점]을 포함하지만 해당 특허는 포함하지 않음"
+      },
+      {
+        "patent_no": "US11000000B1",
+        "title": "선행특허 2 제목",
+        "assignee": "Google",
+        "differentiation": "선행특허와의 차이점"
+      }
+    ],
+
+    "components": [
+      {
+        "ref_num": "110",
+        "name_ko": "크로스플랫폼 렌더링부",
+        "name_en": "Cross-Platform Rendering Unit",
+        "description_ko": "구성요소 1의 기능과 동작 원리를 상세히 기술하세요. 예: 클라이언트 단말기의 전역 객체를 순차 평가하여 4개 실행 환경으로 분기하는 모듈",
+        "description_en": "Describe the function and operation principle of Component 1.",
+        "key_feature": "핵심 기술 특징: 예) window.ReactNativeWebView 전역 객체 순차 평가"
+      },
+      {
+        "ref_num": "120",
+        "name_ko": "인메모리 라우터 격리 셸",
+        "name_en": "In-Memory Router Isolation Shell",
+        "description_ko": "구성요소 2의 기능 설명",
+        "description_en": "Description of Component 2",
+        "key_feature": "핵심 기술 특징"
+      },
+      {
+        "ref_num": "200",
+        "name_ko": "온톨로지 AI 커널",
+        "name_en": "Ontology AI Kernel",
+        "description_ko": "구성요소 3의 기능 설명",
+        "description_en": "Description of Component 3",
+        "key_feature": "핵심 기술 특징"
+      }
+    ],
+
+    "algorithms": [
+      {
+        "name": "플랫폼 분기 알고리즘",
+        "pseudocode": [
+          "1. 조건 A 평가 → True: 경로 A / False: 다음 단계",
+          "2. 조건 B 평가 → True: 경로 B / False: 다음 단계",
+          "3. 기본 경로 실행"
+        ],
+        "figure_ref": "도 2 / FIG. 2"
+      }
+    ],
+
+    "mathematical_formulas": [
+      {
+        "label": "수학식 1",
+        "formula": "Sim₁ ≥ 0.55",
+        "description": "절대 임계치 조건"
+      },
+      {
+        "label": "수학식 2",
+        "formula": "(Sim₁ − Sim₂) ≥ 0.05",
+        "description": "최소 격차 조건 (Min-Gap)"
+      }
+    ],
+
+    "effects": [
+      "본 발명의 첫 번째 효과: 예) Z-Index 오버플로우를 근본적으로 해소",
+      "본 발명의 두 번째 효과: 예) AI 추론 연산 비용을 기하급수적으로 절감",
+      "본 발명의 세 번째 효과: 예) 생체 인식 오인식을 물리적으로 차단"
+    ]
+  },
+
+  "claims": [
+    {
+      "claim_no": 1,
+      "type": "independent_system",
+      "preamble_ko": "분산 환경에서 동작하는 통합 워크스페이스 시스템에 있어서,",
+      "preamble_en": "An integrated workspace system operating in a distributed environment, comprising:",
+      "elements_ko": [
+        "구성요소 1 (110): 특허적으로 중요한 기술 특징을 포함한 구성요소 1 청구항 문구",
+        "구성요소 2 (120): 특허적으로 중요한 기술 특징을 포함한 구성요소 2 청구항 문구",
+        "구성요소 3 (200): 특허적으로 중요한 기술 특징을 포함한 구성요소 3 청구항 문구"
+      ],
+      "elements_en": [
+        "Element 1 (110): Patent-important technical feature of Element 1",
+        "Element 2 (120): Patent-important technical feature of Element 2",
+        "Element 3 (200): Patent-important technical feature of Element 3"
+      ],
+      "closing_ko": "을 포함하는 것을 특징으로 하는, 통합 워크스페이스 시스템.",
+      "closing_en": "wherein the above elements are included in the integrated workspace system."
+    },
+    {
+      "claim_no": 2,
+      "type": "independent_method",
+      "preamble_ko": "컴퓨터가 수행하는 [방법명] 방법으로서,",
+      "preamble_en": "A computer-implemented method for [method name], comprising:",
+      "elements_ko": [
+        "(a) 첫 번째 단계: 설명",
+        "(b) 두 번째 단계: 설명",
+        "(c) 세 번째 단계: 설명"
+      ],
+      "elements_en": [
+        "(a) First step: description",
+        "(b) Second step: description",
+        "(c) Third step: description"
+      ],
+      "closing_ko": "를 포함하는, [방법명] 방법.",
+      "closing_en": "the [method name] method."
+    },
+    {
+      "claim_no": 3,
+      "type": "dependent",
+      "depends_on": 1,
+      "preamble_ko": "제1항에 있어서,",
+      "preamble_en": "The system of claim 1, wherein",
+      "elements_ko": [
+        "추가 구성요소 또는 상세 특징"
+      ],
+      "elements_en": [
+        "Additional component or detailed feature"
+      ],
+      "closing_ko": "을 특징으로 하는, 통합 워크스페이스 시스템.",
+      "closing_en": "the integrated workspace system."
+    }
+  ],
+
+  "drawings": [
+    {
+      "fig_no": 1,
+      "title_ko": "전체 시스템 아키텍처 구성도",
+      "title_en": "Overall System Architecture Diagram",
+      "type": "block_diagram",
+      "components_shown": ["110", "120", "200"],
+      "description_ko": "도 1은 본 발명의 일 실시예에 따른 전체 시스템 아키텍처를 나타낸다.",
+      "description_en": "FIG. 1 is a block diagram illustrating the overall system architecture according to an embodiment of the present invention."
+    },
+    {
+      "fig_no": 2,
+      "title_ko": "핵심 알고리즘 흐름도",
+      "title_en": "Core Algorithm Flowchart",
+      "type": "flowchart",
+      "components_shown": ["110"],
+      "description_ko": "도 2는 본 발명의 일 실시예에 따른 핵심 알고리즘 흐름도이다.",
+      "description_en": "FIG. 2 is a flowchart illustrating the core algorithm according to an embodiment of the present invention."
+    }
+  ],
+
+  "abstract_ko": "본 발명은 [핵심 기술을 2-3 문장으로 요약]. 본 시스템은 [효과 1], [효과 2], [효과 3]을 제공한다.",
+  "abstract_en": "The present invention [summarize core technology in 2-3 sentences]. The system provides [effect 1], [effect 2], and [effect 3]."
+}

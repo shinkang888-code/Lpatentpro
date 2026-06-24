@@ -24,3 +24,5 @@ patent_auto/verifiers/__pycache__/
 .DS_Store
 *.log
 .vercel
+
+.vercel

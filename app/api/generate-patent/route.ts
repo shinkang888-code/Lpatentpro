@@ -64,7 +64,7 @@ function parseAiJson(raw: string): Record<string, unknown> {
 async function generateWithGemini(text: string, office: string): Promise<Record<string, unknown>> {
   const { GoogleGenerativeAI } = await import("@google/generative-ai");
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const result = await model.generateContent(buildPatentPrompt(text, office));
   const raw = result.response.text();

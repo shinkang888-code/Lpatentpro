@@ -71,6 +71,47 @@ async function generateWithGemini(text: string, office: string): Promise<Record<
   return parseAiJson(raw);
 }
 
+// ─── OpenAI GPT-4o-mini 생성 ─────────────────────────────────
+async function generateWithOpenAI(text: string, office: string): Promise<Record<string, unknown>> {
+  const OpenAI = (await import("openai")).default;
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  const response = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    max_tokens: 4096,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: "당신은 20년 경력의 한국/미국 전문 변리사입니다. 반드시 순수 JSON만 응답하세요." },
+      { role: "user", content: buildPatentPrompt(text, office) },
+    ],
+  });
+
+  const raw = response.choices[0]?.message?.content ?? "";
+  return parseAiJson(raw);
+}
+
+// ─── DeepSeek 생성 (OpenAI 호환 API) ─────────────────────────
+async function generateWithDeepSeek(text: string, office: string): Promise<Record<string, unknown>> {
+  const OpenAI = (await import("openai")).default;
+  const client = new OpenAI({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+    baseURL: "https://api.deepseek.com/v1",
+  });
+
+  const response = await client.chat.completions.create({
+    model: "deepseek-chat",
+    max_tokens: 4096,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: "당신은 20년 경력의 한국/미국 전문 변리사입니다. 반드시 순수 JSON만 응답하세요." },
+      { role: "user", content: buildPatentPrompt(text, office) },
+    ],
+  });
+
+  const raw = response.choices[0]?.message?.content ?? "";
+  return parseAiJson(raw);
+}
+
 // ─── Claude AI 생성 ───────────────────────────────────────────
 async function generateWithClaude(text: string, office: string): Promise<Record<string, unknown>> {
   const Anthropic = (await import("@anthropic-ai/sdk")).default;
@@ -197,19 +238,37 @@ export async function POST(req: NextRequest) {
         push("status", { step: 0, message: `📄 "${filename}" 문서를 분석하는 중...`, progress: 5 });
         await sleep(400);
 
-        // 2. AI 또는 폴백으로 전체 데이터 생성 (Gemini > Claude > 폴백)
-        let patentData: Record<string, unknown>;
-        const hasGemini = !!process.env.GEMINI_API_KEY;
-        const hasClaude = !!process.env.CLAUDE_API_KEY;
+        // 2. AI 자동 폴백 체인: Gemini → ChatGPT → DeepSeek → Claude → 텍스트 분석
+        let patentData: Record<string, unknown> | null = null;
+        const hasGemini   = !!process.env.GEMINI_API_KEY;
+        const hasOpenAI   = !!process.env.OPENAI_API_KEY;
+        const hasDeepSeek = !!process.env.DEEPSEEK_API_KEY;
+        const hasClaude   = !!process.env.CLAUDE_API_KEY;
+        const hasAi       = hasGemini || hasOpenAI || hasDeepSeek || hasClaude;
 
-        if (hasGemini) {
-          push("status", { step: 1, message: "🤖 Gemini AI가 발명 내용을 분석하는 중...", progress: 15 });
-          patentData = await generateWithGemini(text, office);
-        } else if (hasClaude) {
-          push("status", { step: 1, message: "🤖 Claude AI가 발명 내용을 이해하는 중...", progress: 15 });
-          patentData = await generateWithClaude(text, office);
-        } else {
-          push("status", { step: 1, message: "🔍 발명 문서에서 핵심 정보를 추출하는 중...", progress: 15 });
+        type AiProvider = { key: boolean; label: string; fn: () => Promise<Record<string, unknown>> };
+        const providers: AiProvider[] = [
+          { key: hasGemini,   label: "🟢 Gemini AI",   fn: () => generateWithGemini(text, office) },
+          { key: hasOpenAI,   label: "⚡ ChatGPT",      fn: () => generateWithOpenAI(text, office) },
+          { key: hasDeepSeek, label: "🔵 DeepSeek",     fn: () => generateWithDeepSeek(text, office) },
+          { key: hasClaude,   label: "🟣 Claude AI",    fn: () => generateWithClaude(text, office) },
+        ];
+
+        for (const p of providers) {
+          if (!p.key) continue;
+          push("status", { step: 1, message: `${p.label}가 발명 내용을 분석하는 중...`, progress: 15 });
+          try {
+            patentData = await p.fn();
+            push("status", { step: 1, message: `${p.label} 분석 완료 ✓`, progress: 20 });
+            break;
+          } catch (err) {
+            console.warn(`${p.label} 실패:`, err);
+            push("status", { step: 1, message: `${p.label} 실패 → 다음 AI로 전환 중...`, progress: 15 });
+          }
+        }
+
+        if (!patentData) {
+          push("status", { step: 1, message: "🔍 텍스트 분석으로 핵심 정보 추출 중...", progress: 15 });
           await sleep(600);
           patentData = extractFromText(text);
         }
@@ -229,7 +288,7 @@ export async function POST(req: NextRequest) {
         for (const section of sections) {
           push("status", { step: section.key, message: `${section.label} 생성 완료`, progress: section.progress });
           push("section", { key: section.key, label: section.label, data: section.data });
-          await sleep(hasGemini || hasClaude ? 200 : 350);
+          await sleep(hasAi ? 200 : 350);
         }
 
         // 4. 완료 — 전체 JSON 전달

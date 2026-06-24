@@ -6,8 +6,8 @@ import { useState } from "react";
 
 const NAV_LINKS = [
   { href: "/", label: "홈" },
+  { href: "/generate", label: "⚡ AI 생성" },
   { href: "/dashboard", label: "대시보드" },
-  { href: "/new", label: "새 특허" },
 ];
 
 export default function Nav() {
@@ -54,10 +54,10 @@ export default function Nav() {
             {/* CTA + 모바일 햄버거 */}
             <div className="flex items-center gap-3">
               <Link
-                href="/new"
+                href="/generate"
                 className="hidden sm:flex btn-glow text-white text-sm font-semibold px-5 py-2 rounded-xl items-center gap-2"
               >
-                <span className="text-xs">+</span> 새 특허
+                <span>⚡</span> AI 생성
               </Link>
 
               {/* 햄버거 */}
@@ -92,11 +92,11 @@ export default function Nav() {
                 </Link>
               ))}
               <Link
-                href="/new"
+                href="/generate"
                 onClick={() => setMobileOpen(false)}
                 className="flex items-center justify-center gap-2 mt-3 btn-glow text-white text-sm font-semibold px-5 py-3 rounded-xl"
               >
-                + 새 특허 시작하기
+                ⚡ AI 명세서 생성하기
               </Link>
             </div>
           </div>
@@ -108,8 +108,8 @@ export default function Nav() {
         <div className="flex items-center justify-around py-2">
           {[
             { href: "/", icon: "⌂", label: "홈" },
+            { href: "/generate", icon: "⚡", label: "AI 생성", highlight: true },
             { href: "/dashboard", icon: "◫", label: "프로젝트" },
-            { href: "/new", icon: "+", label: "새 특허", highlight: true },
           ].map((item) => (
             <Link
               key={item.href}

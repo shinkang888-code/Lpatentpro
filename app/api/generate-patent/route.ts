@@ -8,22 +8,19 @@ function sse(type: string, data: unknown): string {
   return `data: ${JSON.stringify({ type, data })}\n\n`;
 }
 
-// ─── Claude AI 생성 ───────────────────────────────────────────
-async function generateWithClaude(text: string, office: string): Promise<Record<string, unknown>> {
-  const Anthropic = (await import("@anthropic-ai/sdk")).default;
-  const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
-
+// ─── 공통 프롬프트 빌더 ───────────────────────────────────────
+function buildPatentPrompt(text: string, office: string): string {
   const officeDesc = office === "KIPO" ? "한국 특허청(KIPO) 전용"
     : office === "USPTO" ? "미국 특허청(USPTO) 전용"
     : "한국(KIPO) + 미국(USPTO) 동시 출원";
 
-  const prompt = `당신은 20년 경력의 한국/미국 전문 변리사입니다.
+  return `당신은 20년 경력의 한국/미국 전문 변리사입니다.
 아래 발명 문서를 읽고 ${officeDesc} 특허 명세서에 필요한 정보를 JSON 형식으로 추출/생성해주세요.
 
 [발명 문서]
 ${text.slice(0, 8000)}
 
-반드시 아래 JSON 형식으로만 응답하세요. 다른 설명 없이 JSON만:
+반드시 아래 JSON 형식으로만 응답하세요. 코드블록(\`\`\`)이나 다른 설명 없이 순수 JSON만:
 {
   "title_ko": "발명의 한국어 명칭 (간결하고 기술적으로)",
   "title_en": "TITLE IN ENGLISH ALL CAPS",
@@ -35,7 +32,7 @@ ${text.slice(0, 8000)}
   "technical_field_en": "[0002] The present invention relates to [field].",
   "problem_statement": ["기존 기술의 첫 번째 문제점", "두 번째 문제점", "세 번째 문제점"],
   "prior_art": [
-    { "patent_no": "관련 특허번호 또는 비어있으면 N/A", "assignee": "회사명", "differentiation": "차별화 포인트" }
+    { "patent_no": "관련 특허번호 또는 N/A", "assignee": "회사명", "differentiation": "차별화 포인트" }
   ],
   "components": [
     { "ref_num": "100", "name_ko": "구성요소 한국어 명칭", "name_en": "Component English Name", "description_ko": "상세한 기능 설명", "description_en": "Detailed description", "key_feature": "핵심 기술 특징" }
@@ -53,17 +50,40 @@ ${text.slice(0, 8000)}
   "abstract_ko": "요약 한국어 (2-3문장)",
   "abstract_en": "Abstract in English (2-3 sentences)"
 }`;
+}
+
+function parseAiJson(raw: string): Record<string, unknown> {
+  // 코드블록 제거 후 JSON 파싱
+  const cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+  const match = cleaned.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("AI 응답에서 JSON을 찾을 수 없습니다.");
+  return JSON.parse(match[0]);
+}
+
+// ─── Gemini AI 생성 ───────────────────────────────────────────
+async function generateWithGemini(text: string, office: string): Promise<Record<string, unknown>> {
+  const { GoogleGenerativeAI } = await import("@google/generative-ai");
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+  const result = await model.generateContent(buildPatentPrompt(text, office));
+  const raw = result.response.text();
+  return parseAiJson(raw);
+}
+
+// ─── Claude AI 생성 ───────────────────────────────────────────
+async function generateWithClaude(text: string, office: string): Promise<Record<string, unknown>> {
+  const Anthropic = (await import("@anthropic-ai/sdk")).default;
+  const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 
   const response = await client.messages.create({
     model: "claude-opus-4-5",
     max_tokens: 4096,
-    messages: [{ role: "user", content: prompt }],
+    messages: [{ role: "user", content: buildPatentPrompt(text, office) }],
   });
 
-  const rawText = response.content[0].type === "text" ? response.content[0].text : "";
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("AI 응답에서 JSON을 찾을 수 없습니다.");
-  return JSON.parse(jsonMatch[0]);
+  const raw = response.content[0].type === "text" ? response.content[0].text : "";
+  return parseAiJson(raw);
 }
 
 // ─── 텍스트 분석 기반 폴백 ────────────────────────────────────
@@ -177,11 +197,15 @@ export async function POST(req: NextRequest) {
         push("status", { step: 0, message: `📄 "${filename}" 문서를 분석하는 중...`, progress: 5 });
         await sleep(400);
 
-        // 2. AI 또는 폴백으로 전체 데이터 생성
+        // 2. AI 또는 폴백으로 전체 데이터 생성 (Gemini > Claude > 폴백)
         let patentData: Record<string, unknown>;
-        const apiKey = process.env.CLAUDE_API_KEY || process.env.OPENAI_API_KEY;
+        const hasGemini = !!process.env.GEMINI_API_KEY;
+        const hasClaude = !!process.env.CLAUDE_API_KEY;
 
-        if (apiKey && process.env.CLAUDE_API_KEY) {
+        if (hasGemini) {
+          push("status", { step: 1, message: "🤖 Gemini AI가 발명 내용을 분석하는 중...", progress: 15 });
+          patentData = await generateWithGemini(text, office);
+        } else if (hasClaude) {
           push("status", { step: 1, message: "🤖 Claude AI가 발명 내용을 이해하는 중...", progress: 15 });
           patentData = await generateWithClaude(text, office);
         } else {
@@ -205,7 +229,7 @@ export async function POST(req: NextRequest) {
         for (const section of sections) {
           push("status", { step: section.key, message: `${section.label} 생성 완료`, progress: section.progress });
           push("section", { key: section.key, label: section.label, data: section.data });
-          await sleep(apiKey ? 200 : 350);
+          await sleep(hasGemini || hasClaude ? 200 : 350);
         }
 
         // 4. 완료 — 전체 JSON 전달
